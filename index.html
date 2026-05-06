@@ -1,39 +1,117 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Wingo Number Trend Predictor</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wingo Predictor</title>
 
-    *, *::before, *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #111;
+  color: #fff;
+  padding: 10px;
+  text-align: center;
+}
 
-    :root {
-      --bg-primary: #1a0f0a;
-      --bg-secondary: #2d1810;
-      --bg-card: #3a2518;
-      --border: rgba(255,255,255,0.08);
-      --text-primary: #f5f1ed;
-      --text-secondary: #a89080;
-      --text-muted: #6b5a4a;
-      --orange: #ff8c42;
-      --orange-dark: #cc6a20;
-      --blue: #5b9cff;
-      --blue-dark: #2d5fa8;
-      --green: #10d981;
-      --red: #ef4444;
-      --pink: #ec4899;
-      --accent: #fbbf24;
-    }
+/* GRID FIX */
+.number-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+  gap: 10px;
+  max-width: 400px;
+  margin: auto;
+}
 
-    html, body {
-      height: 100%;
-      font-family: 'Inter', system-ui, sans-serif;
+.btn-number {
+  height: 60px;
+  font-size: 18px;
+  border: none;
+  border-radius: 10px;
+  background: #333;
+  color: white;
+  cursor: pointer;
+}
+
+.btn-number.selected {
+  background: orange;
+}
+
+/* Button */
+#predictBtn {
+  margin-top: 20px;
+  padding: 12px;
+  width: 100%;
+  max-width: 400px;
+  font-size: 16px;
+  background: orange;
+  border: none;
+  border-radius: 10px;
+  color: white;
+}
+
+/* Result */
+#result {
+  margin-top: 20px;
+  font-size: 30px;
+  font-weight: bold;
+}
+
+/* Mobile extra fix */
+@media (max-width: 360px) {
+  .number-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+</style>
+
+</head>
+
+<body>
+
+<h2>Select Number (0-9)</h2>
+
+<div class="number-grid" id="numberGrid"></div>
+
+<button id="predictBtn" disabled>Predict</button>
+
+<div id="result">Select a number</div>
+
+<script>
+let selected = null;
+
+function initGrid() {
+  const grid = document.getElementById("numberGrid");
+
+  for (let i = 0; i <= 9; i++) {
+    const btn = document.createElement("button");
+    btn.className = "btn-number";
+    btn.innerText = i;
+
+    btn.onclick = () => {
+      document.querySelectorAll(".btn-number").forEach(b => b.classList.remove("selected"));
+      btn.classList.add("selected");
+      selected = i;
+      document.getElementById("predictBtn").disabled = false;
+    };
+
+    grid.appendChild(btn);
+  }
+}
+
+document.getElementById("predictBtn").onclick = () => {
+  if (selected === null) return;
+
+  const result = Math.random() > 0.5 ? "BIG" : "SMALL";
+  document.getElementById("result").innerText = result;
+};
+
+window.onload = initGrid;
+</script>
+
+</body>
+</html>
       background: linear-gradient(135deg, #0f0805 0%, #1a0f0a 50%, #2a1410 100%);
       color: var(--text-primary);
       overflow-x: hidden;
