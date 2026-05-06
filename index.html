@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wingo Number Trend Predictor</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg-primary: #1a0f0a;
+      --bg-secondary: #2d1810;
+      --bg-card: #3a2518;
+      --border: rgba(255,255,255,0.08);
+      --text-primary: #f5f1ed;
+      --text-secondary: #a89080;
+      --text-muted: #6b5a4a;
+      --orange: #ff8c42;
+      --orange-dark: #cc6a20;
+      --blue: #5b9cff;
+      --blue-dark: #2d5fa8;
+      --green: #10d981;
+      --red: #ef4444;
+      --pink: #ec4899;
+      --accent: #fbbf24;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Inter', system-ui, sans-serif;
+      background: linear-gradient(135deg, #0f0805 0%, #1a0f0a 50%, #2a1410 100%);
+      color: var(--text-primary);
+      overflow-x: hidden;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      padding: 16px;
+      background-attachment: fixed;
+    }
+
+    /* Header */
+    .header {
+      width: 100%;
+      max-width: 540px;
+      text-align: center;
+      margin-bottom: 24px;
+      margin-top: 12px;
+    }
+
+    .header-subtitle {
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .header h1 {
+      font-size: clamp(26px, 6vw, 36px);
+      font-weight: 800;
+      letter-spacing: -0.015em;
+      line-height: 1.15;
+      margin-bottom: 4px;
+      background: linear-gradient(135deg, #ffffff 0%, #ffb84d 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      font-weight: 400;
+    }
+
+    /* Main container */
+    .container {
+      width: 100%;
+      max-width: 540px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    /* Card */
+    .card {
+      background: linear-gradient(135deg, rgba(58,37,24,0.8) 0%, rgba(45,24,16,0.9) 100%);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(10px);
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+      pointer-events: none;
+    }
+
+    .card-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    /* Number grid */
+    .number-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .btn-number {
+      aspect-ratio: 1;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      background: rgba(255,140,66,0.08);
+      color: var(--text-primary);
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-number:hover {
+      background: rgba(255,140,66,0.15);
+      border-color: var(--orange);
+      transform: translateY(-2px);
+    }
+
+    .btn-number.selected {
+      background: linear-gradient(135deg, var(--orange) 0%, var(--orange-dark) 100%);
+      border-color: var(--orange);
+      box-shadow: 0 0 20px rgba(255,140,66,0.6);
+      color: #fff;
+      transform: scale(1.08);
+    }
+
+    /* Stats section */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .stat-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .stat-value {
+      font-size: 22px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .stat-value.big { color: var(--orange); }
+    .stat-value.small { color: var(--blue); }
+
+    /* Probability bars */
+    .prob-container {
+      margin-top: 12px;
+    }
+
+    .prob-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .prob-label {
+      font-size: 12px;
+      font-weight: 600;
+      min-width: 50px;
+      text-transform: uppercase;
+    }
+
+    .prob-label.big { color: var(--orange); }
+    .prob-label.small { color: var(--blue); }
+
+    .prob-bar-wrap {
+      flex: 1;
+      height: 18px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 100px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.06);
+      position: relative;
+    }
+
+    .prob-bar {
+      height: 100%;
+      border-radius: 100px;
+      transition: width 0.5s cubic-bezier(0.25,0.46,0.45,0.94);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      color: #fff;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    }
+
+    .prob-bar.big {
+      background: linear-gradient(90deg, var(--orange-dark) 0%, var(--orange) 100%);
+      box-shadow: 0 0 15px rgba(255,140,66,0.3);
+    }
+
+    .prob-bar.small {
+      background: linear-gradient(90deg, var(--blue-dark) 0%, var(--blue) 100%);
+      box-shadow: 0 0 15px rgba(91,156,255,0.3);
+    }
+
+    /* Trend badge */
+    .trend-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(251,191,36,0.1);
+      border: 1px solid rgba(251,191,36,0.25);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent);
+      letter-spacing: 0.05em;
+      margin-top: 8px;
+    }
+
+    /* Predict button */
+    .btn-predict {
+      width: 100%;
+      background: linear-gradient(135deg, var(--orange) 0%, var(--orange-dark) 100%);
+      border: none;
+      border-radius: 12px;
+      padding: 16px;
+      color: #fff;
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+      text-transform: uppercase;
+      box-shadow: 0 4px 20px rgba(255,140,66,0.4);
+    }
+
+    .btn-predict:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 30px rgba(255,140,66,0.6);
+    }
+
+    .btn-predict:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    .btn-predict:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Loading animation */
+    .btn-predict.loading {
+      pointer-events: none;
+    }
+
+    .loader {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Prediction result */
+    .prediction-card {
+      min-height: 160px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .prediction-card.loading::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+      animation: loading-shine 1.5s infinite;
+    }
+
+    @keyframes loading-shine {
+      0% { left: -100%; }
+      100% { left: 100%; }
+    }
+
+    .prediction-label {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .prediction-result {
+      font-size: 52px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      margin: 12px 0;
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-shadow: 0 4px 20px rgba(0,0,0,0.6);
+      animation: result-pop 0.5s cubic-bezier(0.34,1.56,0.64,1);
+    }
+
+    @keyframes result-pop {
+      0% { opacity: 0; transform: scale(0.5) rotateX(45deg); }
+      100% { opacity: 1; transform: scale(1) rotateX(0deg); }
+    }
+
+    .prediction-result.big { color: var(--orange); }
+    .prediction-result.small { color: var(--blue); }
+
+    .prediction-empty {
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    .prediction-info {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 12px;
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    /* Join button */
+    .btn-join {
+      width: 100%;
+      max-width: 540px;
+      background: linear-gradient(135deg, #25a629 0%, #1a7a1d 100%);
+      border: 1px solid rgba(16,217,129,0.3);
+      border-radius: 12px;
+      padding: 14px 20px;
+      color: #fff;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 12px;
+      margin-bottom: 32px;
+      box-shadow: 0 2px 12px rgba(16,217,129,0.2);
+    }
+
+    .btn-join:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(16,217,129,0.35);
+    }
+
+    /* Responsive */
+    @media (max-width: 420px) {
+      .number-grid {
+        grid-template-columns: repeat(5, 1fr);
+      }
+      .prediction-result {
+        font-size: 42px;
+      }
+      .card {
+        padding: 16px;
+      }
+    }
+
+    /* Data table */
+    .data-table {
+      width: 100%;
+      margin-top: 12px;
+      max-height: 200px;
+      overflow-y: auto;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .table-header {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      padding: 10px;
+      background: rgba(255,255,255,0.05);
+      border-bottom: 1px solid var(--border);
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      position: sticky;
+      top: 0;
+      border-radius: 8px 8px 0 0;
+    }
+
+    .table-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      padding: 8px 10px;
+      font-size: 11px;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      align-items: center;
+    }
+
+    .table-row:last-child { border-bottom: none; }
+
+    .result-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 4px;
+    }
+
+    .result-dot.big { background: var(--orange); }
+    .result-dot.small { background: var(--blue); }
+
+    .fade-in {
+      animation: fade-in 0.3s ease;
+    }
+
+    @keyframes fade-in {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-subtitle">Number Pattern Analysis</div>
+    <h1>Wingo Trend Predictor</h1>
+    <div class="header-desc">Smart AI-powered number trend analysis</div>
+  </header>
+
+  <!-- Main container -->
+  <div class="container">
+
+    <!-- Number selection -->
+    <div class="card">
+      <div class="card-label">Select Last Number (0-9)</div>
+      <div class="number-grid" id="numberGrid"></div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="card" id="statsCard" style="display:none;">
+      <div class="card-label">Number Trend Analysis</div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">After <span id="selectedNum">-</span></div>
+          <div style="margin-top: 6px;">
+            <div class="stat-value big" id="bigCount">0</div>
+            <div class="stat-label" style="color:var(--orange); margin-top:2px;">BIG</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">After <span id="selectedNum2">-</span></div>
+          <div style="margin-top: 6px;">
+            <div class="stat-value small" id="smallCount">0</div>
+            <div class="stat-label" style="color:var(--blue); margin-top:2px;">SMALL</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="prob-container">
+        <div class="prob-row">
+          <div class="prob-label big">BIG</div>
+          <div class="prob-bar-wrap">
+            <div class="prob-bar big" id="barBig" style="width:0%">
+              <span id="percBig">0%</span>
+            </div>
+          </div>
+        </div>
+        <div class="prob-row">
+          <div class="prob-label small">SMALL</div>
+          <div class="prob-bar-wrap">
+            <div class="prob-bar small" id="barSmall" style="width:0%">
+              <span id="percSmall">0%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="trend-badge" id="trendBadge">
+        <span>📊 Select a number to analyze</span>
+      </div>
+    </div>
+
+    <!-- Predict button -->
+    <button class="btn-predict" id="predictBtn" onclick="runPrediction()" disabled>
+      ANALYZE & PREDICT
+    </button>
+
+    <!-- Prediction result -->
+    <div class="card prediction-card" id="predictionCard">
+      <div class="prediction-label">Next Prediction</div>
+      <div class="prediction-result prediction-empty" id="resultText">Select a number</div>
+      <div class="prediction-info" id="infoText"></div>
+    </div>
+
+  </div>
+
+  <!-- Join button -->
+  <a class="btn-join" href="https://wa.link/wjcj1d" target="_blank">
+    💬 Join Our Winning Channel
+  </a>
+
+  <script>
+    // Sample data from screenshots
+    const sampleData = [
+      { num: 9, type: 'BIG' },
+      { num: 2, type: 'SMALL' },
+      { num: 8, type: 'BIG' },
+      { num: 6, type: 'BIG' },
+      { num: 6, type: 'BIG' },
+      { num: 2, type: 'SMALL' },
+      { num: 6, type: 'BIG' },
+      { num: 1, type: 'SMALL' },
+      { num: 4, type: 'SMALL' },
+      { num: 8, type: 'BIG' },
+      { num: 4, type: 'SMALL' },
+      { num: 8, type: 'BIG' },
+      { num: 8, type: 'BIG' },
+      { num: 5, type: 'BIG' },
+      { num: 7, type: 'BIG' },
+      { num: 8, type: 'BIG' },
+      { num: 7, type: 'BIG' },
+      { num: 9, type: 'BIG' },
+      { num: 3, type: 'SMALL' },
+      { num: 7, type: 'BIG' },
+      { num: 7, type: 'BIG' },
+      { num: 3, type: 'SMALL' },
+      { num: 1, type: 'SMALL' },
+      { num: 9, type: 'BIG' },
+      { num: 8, type: 'BIG' },
+      { num: 7, type: 'BIG' },
+      { num: 4, type: 'SMALL' },
+      { num: 2, type: 'SMALL' },
+      { num: 8, type: 'BIG' },
+      { num: 0, type: 'SMALL' },
+    ];
+
+    let selectedNumber = null;
+    let allData = [...sampleData];
+
+    function initializeNumberGrid() {
+      const grid = document.getElementById('numberGrid');
+      for (let i = 0; i < 10; i++) {
+        const btn = document.createElement('button');
+        btn.className = 'btn-number';
+        btn.textContent = i;
+        btn.onclick = () => selectNumber(i, btn);
+        grid.appendChild(btn);
+      }
+    }
+
+    function selectNumber(num, btn) {
+      // Remove previous selection
+      document.querySelectorAll('.btn-number').forEach(b => b.classList.remove('selected'));
+
+      // Add selection to current
+      btn.classList.add('selected');
+      selectedNumber = num;
+
+      // Show stats and enable predict
+      document.getElementById('statsCard').style.display = 'block';
+      document.getElementById('predictBtn').disabled = false;
+
+      updateStats(num);
+    }
+
+    function updateStats(num) {
+      // Filter data: find results that came AFTER this number
+      const resultsAfter = [];
+      for (let i = 0; i < allData.length - 1; i++) {
+        if (allData[i].num === num) {
+          resultsAfter.push(allData[i + 1].type);
+        }
+      }
+
+      const bigCount = resultsAfter.filter(r => r === 'BIG').length;
+      const smallCount = resultsAfter.filter(r => r === 'SMALL').length;
+      const total = bigCount + smallCount;
+
+      const bigPerc = total > 0 ? Math.round((bigCount / total) * 100) : 0;
+      const smallPerc = total > 0 ? Math.round((smallCount / total) * 100) : 0;
+
+      // Update display
+      document.getElementById('selectedNum').textContent = num;
+      document.getElementById('selectedNum2').textContent = num;
+      document.getElementById('bigCount').textContent = bigCount;
+      document.getElementById('smallCount').textContent = smallCount;
+      document.getElementById('percBig').textContent = bigPerc + '%';
+      document.getElementById('percSmall').textContent = smallPerc + '%';
+
+      // Update bars with animation delay
+      setTimeout(() => {
+        document.getElementById('barBig').style.width = bigPerc + '%';
+        document.getElementById('barSmall').style.width = smallPerc + '%';
+      }, 100);
+
+      // Update trend badge
+      const trendBadge = document.getElementById('trendBadge');
+      if (total === 0) {
+        trendBadge.innerHTML = '📊 No data for this number yet';
+      } else if (bigPerc > smallPerc) {
+        trendBadge.innerHTML = `📈 <strong>BIG Dominant</strong> after ${num} (${bigPerc}%)`;
+      } else if (smallPerc > bigPerc) {
+        trendBadge.innerHTML = `📉 <strong>SMALL Dominant</strong> after ${num} (${smallPerc}%)`;
+      } else {
+        trendBadge.innerHTML = `⚖️ <strong>Balanced Trend</strong> after ${num}`;
+      }
+
+      // Store for prediction
+      window.currentStats = { bigCount, smallCount, bigPerc, smallPerc, total };
+    }
+
+    function runPrediction() {
+      if (selectedNumber === null) return;
+
+      const btn = document.getElementById('predictBtn');
+      const card = document.getElementById('predictionCard');
+      const resultText = document.getElementById('resultText');
+      const infoText = document.getElementById('infoText');
+
+      // Loading state
+      btn.classList.add('loading');
+      btn.disabled = true;
+      card.classList.add('loading');
+      resultText.textContent = '⏳ Analyzing...';
+      resultText.classList.remove('big', 'small');
+      infoText.textContent = 'Processing patterns...';
+
+      // Simulate 5-second analysis
+      setTimeout(() => {
+        const stats = window.currentStats;
+
+        // Determine prediction based on probability
+        let prediction;
+        if (stats.total === 0) {
+          prediction = Math.random() > 0.5 ? 'BIG' : 'SMALL';
+        } else if (stats.bigPerc > stats.smallPerc) {
+          prediction = 'BIG';
+        } else if (stats.smallPerc > stats.bigPerc) {
+          prediction = 'SMALL';
+        } else {
+          prediction = Math.random() > 0.5 ? 'BIG' : 'SMALL';
+        }
+
+        // Display result
+        resultText.textContent = prediction;
+        resultText.classList.add('fade-in');
+        resultText.classList.add(prediction === 'BIG' ? 'big' : 'small');
+        resultText.classList.remove('prediction-empty');
+
+        const confidence = Math.abs(stats.bigPerc - stats.smallPerc);
+        const trendInfo = prediction === 'BIG'
+          ? `After ${selectedNumber} → BIG trend (${stats.bigPerc}% probability)`
+          : `After ${selectedNumber} → SMALL trend (${stats.smallPerc}% probability)`;
+
+        infoText.textContent = trendInfo;
+      
